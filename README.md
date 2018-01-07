@@ -1,5 +1,7 @@
 # Mozilla-Express Tut
 
+_each successive README will be in it's own directory_
+
 ### 1 - what is Node/Express?
 
 Node is a Javascript runtime environment that is inteneded to be run outside the browser.  (which is nice b/c you can 
@@ -399,6 +401,145 @@ index.html
 
 console.log("this is working yo!");
 ```
+#### Handling errors
+
+Errors are handled by one or more special middleware functions that have four arugments, instead of the usual three
+```(err, req, res, next)``` For ex:
+```javascript
+
+// error example
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something Broke!');
+});
+```
+**These can return any content required but must be called after all other ```app.use()``` and routes so they are the last
+middleware in the request process.**
+
+Express has a built in error handler that will cover any remaining errors in the app.
+
+For more examples see [error handling](http://expressjs.com/en/guide/error-handling.html).
+
+#### Using databases
+
+Express can use any database supported by Node; PostgreSQL, MySQL, Redis, SQLite, MongoDB, etc.
+
+In order to use them use must first install them:
+
+```
+npm install mongodb
+```
+
+The database itself can be installed locally or on a cloud server.  In Express code you can require the driver, connect to the dsatbase
+and then perfrom Create, Read, Update, and Delete operatoins on the db. The example below (from Express docs) shows how you can find
+'mammal' records using MongoDB.
+
+```javascript
+
+const   MongoClient = require('mongodb').MongoClient;
+
+MongoClient.connect('mongodb://localhost:27017/animals', () => {
+    if (err) throw err;
+    
+    db.collection('mammals').find().toArray((err, result) => {
+        if (err) throw err;
+        
+        console.log(result);
+    });
+});
+```
+
+Another popular approach is to access your database indirectly, via an Object Relational Mapper ('ORM'). In this approach you define your data
+as 'objects' or 'models' and the ORM maps these through to the underlying database format. This approach has the advantage that you, as the devloper,
+can think in terms of Javascript Objects instead of database semantics, and that there is an obvious place to perform validation checking of incoming
+data.  For more information see [databae integration](https://expressjs.com/en/guide/database-integration.html).
+
+#### Rendering data (Views)
+
+Template engeins (referred to as 'view' engines by Express) allow you to specify the structure of the output document in a template, using
+placeholders for data that will be filled in when the page is generated.  Templates are often used to create HTML but can also be used
+to create other types of documents.  Express supports many [template engines](https://github.com/expressjs/express/wiki#template-engines).  Here 
+[are some comparisons of Jade, Dust, Mustache, and more](https://strongloop.com/strongblog/compare-javascript-templates-jade-mustache-dust/).
+
+In your application settings code you can set the template engine to use and the location where Express should look for templates
+using the 'views' and 'view engines' settings, as shown below. (don't forget to install template lib)
+
+```javascript
+
+// set directory to contain the templates ('views')
+app.set('views', path.join(__dirname + 'views'));
+
+// set view engine to use, in this case 'some_template_engine_name'
+app.set('view engine', 'some_template_engine_name');
+```
+
+The appearance of the template will depend on what engine you use. Assuming you have a template file
+named 'index<template_extension>' that contains placeholders for data variables named 'title' and 'message', 
+you would call ```res.render()``` in a route handler function to create and send the html response.  
+
+```javascript
+
+app.get('/', (req, res) => {
+    res.render('index', { title: 'About dogs', message: 'Dogs Rock!' });
+});
+```
+
+Ok lets install use a template engine and make our simple app incorporate some dynamic content.
+
+```
+npm install --save pug
+```
+
+```
+<!-- /views/homepage.pug-->
+html 
+    body
+        h1 Hello from Pug
+        p Hello #{user}
+```
+
+main app file:
+```javascript
+// app.js
+
+// app.js
+
+const   express = require("express"),
+        path = require("path"),
+        port = process.env.PORT,
+        app = express();
+
+// set views directory as location of templates and which view engine to use
+app.set('views', path.join(__dirname + '/views'));
+app.set('view engine', 'pug');
+
+
+        
+// allow directory ./public to serve static files
+app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+    res.render('homepage', {
+        user: 'Gabe',
+    });
+});
+
+app.listen(port, () => {
+    console.log(`listening on port ${port}`);
+});
+```
+
+#### File Structure
+
+Express makes no assumption on file structure or what components you use. Routes, views, static-files, other application specific logic, etc. can
+live in any number files with any directory structure.  While it's perfectly possible to have the entire Express application in a single file
+it is much easier to reason about and debug from an organized file structre.  
+
+Later on we use the Express application generator to create a modular app skeleton.
+
+
+        
 
 
 
