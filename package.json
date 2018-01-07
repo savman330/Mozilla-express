@@ -1,0 +1,28 @@
+{
+  "name": "mozilla_express",
+  "version": "1.0.0",
+  "description": "### 1 - what is Node/Express?",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/savman330/Mozilla-express.git"
+  },
+  "author": "gabe larkin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/savman330/Mozilla-express/issues"
+  },
+  "homepage": "https://github.com/savman330/Mozilla-express#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "morgan": "^1.9.0",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.8"
+  }
+}

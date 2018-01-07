@@ -239,3 +239,169 @@ or response then call the next function in the 'stack', which might be more midd
 > can **also end the request-response cycle. If it does not then end the cycle it must call next() to pass control the the next middleware
 > function or the request will be left hanging.**
 
+Most apps will use third-party middleware to simplify common web dev tasks like cookies, sessions, user auth, accessing request POST 
+and JSON data, logging, etc.  You can find [a list of middleware packages maintainted by the Express team here.](http://expressjs.com/en/resources/middleware.html).
+
+##### Example of using middleware
+
+To use third-party middleware you must first install it:
+_if using in app ```npm install --save morgan``` to make in a dependancy_
+```
+npm install morgan
+```
+
+Then we must require it in our script: 
+
+```javascript
+const   express = require('express'),
+        logger = require('morgan'),
+        app = express();
+        
+app.use(logger('dev'));
+```
+> **Note: middleware and routing functions are called in the order that they are declared.  For some middleware the order is important...
+> e.g. if session middleware depends on cookie middleware then cookie middleware must be called first.  It is almost always the case taht 
+> middleware is called before setting routes or your route handlers will not have access to the middleware funcitonality.
+
+You can write your own middleware functions and you are likely to do so if only to create error handling code.  **The _only_ difference
+between a middleware function and a route handler callback is the middleware functions have a third argument ```next```, which middleware 
+functions are expected to call if the do not complete the request cycle.**
+
+You can add a middleware function to the processing chain with either ```app.use()``` or ```app.add()```, depending on whether you want to apply
+the middleware to all responses or to responses with a particualr HTTP verb.  You speciy routes the same in both cases, though the route is optional
+when using ```app.use()```.
+
+The example below shows how to add a middleware function using both methods:
+
+```javascript
+// middle_examp.js
+
+const   express = require("express"),
+        app = express(),
+        port = '$PORT';
+        
+
+// an example middleware funciton
+
+var middlewareFunction = (req, res, next) => {
+  
+  /*
+  perform some operations
+  */
+  
+  // then call next() so Express will call the next middleware function in the chain
+  next();
+};
+
+// function added with app.use() so it applies to all routes and verbs
+app.use(middlewareFunction);
+
+// function added with app.use() for a specific route
+app.use('/someroute', middlewareFunction);
+
+// a middleware function added for a specific HTTP verb and route
+app.get('/anotherroute', middlewareFunction);
+
+app.listen(port);
+```
+
+The Express documentation has much more on [using](https://expressjs.com/en/guide/using-middleware.html) and [writing](http://expressjs.com/en/guide/writing-middleware.html) 
+Express middleware.
+
+#### Serving static files
+
+You can use the Express.static()  middleware to serve static files.  It's the only middleware thats part of Express. For example
+you would use the line below to serve images, CSS files, and Javascript files from a directory named **'public'** at the same level where
+you call Node:
+
+```javascript
+app.use(express.static('public'));
+```
+
+Any files in the public directory are served by adding their filename (relative to the base 'public' directory) to the base URL.
+
+> **potential point of confusion here:** when we say declare a 'src' 'path' in a ```<script src='pathtofile'> the 'path' is actually
+> a route.  That can be confusing.  Remeber we are _serving_ the (in this case) javascript file.  We are declaring a path.  So 
+> our static middleware knows to look for static files in the public folder.....so when we have say a ```<script>``` element the ROUTE
+> is actually /public/pathtofile; that's been a source of confusion for me.  We are SERVING, hence we use a URL ROUTE.  slight difference
+> from a path.
+
+For example:
+
+```
+http://localhost:3000/images/dog.jpg
+http://localhost:3000/images/cat.jpg
+http://localhost:3000/js/ascript.js
+http://localhost:3000/css/somestyle.css
+etc...
+```
+
+You can call ```static()``` multiple times to serve multiple directories. If a file cannot be found by one of middleware function then it will
+simply be passed to the subsequent middleware.
+
+```javascript
+app.use(express.static('public'));
+app.use(express.static('media'));
+```
+
+You can also add a virtual prefix to your static URL's, rather than having the files added to the base URL. For example here we specify a 
+mount path so that the files are loaded with the prefix '/media'.
+
+```javascript
+app.use('/media', express.static('public'));
+```
+
+Below is a simple app that illustrates the concepts above.  I have a public folder in root that containss a js directory with a script, test.js, 
+that simply logs a string to console to verify operation.  Lastly I have a rudimentary index.html page in the root directory which I am 
+sendin with the sendFile() method on the response object.
+
+```javascript
+// app.js
+
+const   express = require("express"),
+        path = require("path"),
+        port = process.env.PORT,
+        app = express();
+        
+// allow directory ./public to serve static files
+app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
+
+app.listen(port, () => {
+    console.log(`listening on port ${port}`);
+});
+        
+```
+
+index.html
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>
+        A clever title
+    </title>
+</head>
+<body>
+    <div id='container'>
+        Hello World!
+    </div>
+    <script type='text/javascript' src='js/test.js'></script>
+</body>
+</html>
+```
+/public/js/test.js
+```javascript
+// test.js
+
+console.log("this is working yo!");
+```
+
+
+
+
+
+
