@@ -232,7 +232,10 @@ app.use('/wiki', wiki);
 #### Using middleware
 
 Middleware is used extensively in Express, from serving static files, to error handling, to compressing HTTP responses. **Whereas route functions
-end the HTTP req by returning a response to the HTTP client, middleware functions _typically_ perform some operation on the request
+end the HTTP request by returning a response to the HTTP client, middleware functions _typically_ perform some operation on the request
 or response then call the next function in the 'stack', which might be more middleware or another route handler.**
 
+> **Note:** The middleware can perform any operation, execute any code, make changes to the request and response object, and it 
+> can **also end the request-response cycle. If it does not then end the cycle it must call next() to pass control the the next middleware
+> function or the request will be left hanging.**
 
