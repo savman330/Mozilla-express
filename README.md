@@ -105,5 +105,131 @@ _aside: creating modules allows use to seperate the different parts/logic of our
 and makes it easier to find errors/debug.  Additionally, by keeping functions seperate it keeps the namespace clean as we only
 populate our main namespace with the single name we export._
 
+To make objects accessible outside of a module all you need to do is assign them to the ```exports``` object. For example square.js module below
+export the ```area()``` and ```perimeter``` methods.  
+
+```javascript
+// square.js
+
+/*
+x denotes the lengt of the side of the square.
+
+the area() method returns the area of the square.
+the perimiter() method returns the perimiter of the square.  
+*/
+
+
+        
+        
+exports.area = (x) => {
+    return x*x;
+};
+
+exports.perimiter = (x, y) => {
+    return x*4;  
+};
+```
+
+Then we can import the object and log the output to console:
+
+```javascript
+// imp.js
+
+const   square = require("./square");
+
+let side = 6;
+
+console.log(`the area of a square with side of ${side} is ${square.area(side)}; the perimiter is ${square.perimiter(side)}`);
+```
+#### Using Ascynchrnous APIs
+
+synchronous code execution:
+
+```javascript
+console.log('one');
+console.log('two');
+```
+will print to stdout what we expect: 
+
+```
+one
+two
+```
+
+Here we use the setTimeout function to make a console.log async:
+```javascript
+setTimeout( () => {
+ console.log('first');   
+}, 3000);
+
+console.log('second');
+```
+
+which will print out: 
+```
+second
+first
+```
+
+Because the callback function doesn't fire until 3000ms has passed despite the fact we called the setTimeout funcntion prior to logging 'two'.
+
+
+Using non blocking asynchronous APIs is even more important in Node than in the browswer b/c Node is a single threaded event driven environment.
+All process are on running on the same thread which is efficeint and fast in terms of server resources, but if we call any blocking functions
+that take a long time to complete no code can execute beyond the blocking funcion despite the fact the server resources are idle.
+
+However, there are ways around this.  The most common way is to register a callback function that will fire after an event...e.g. if waiting
+for an http request the callback will fire once the request has comeback but in the mean time code will continue to be executed.  
+
+
+#### Creating route handlers
+
+In our Hello World Express we defined a callback routed handler for an HTTP GET request on the '/' URL path. 
+
+```javascript
+app.get('/', (req, res) => {
+    res.send('Hello from Express!');
+});
+```
+The callback function takes request and response objects. In this case we simply called ```send()``` on the response object to send the
+string ```'Hello from Express'```.  There are many other [response methods](https://expressjs.com/en/guide/routing.html#response-methods).  
+Some examples are ```res.sendFile()``` to send a file and ```res.json()``` to send a JSON response.
+
+There is a special routing method ```app.all()``` which will be called in response to *_any_* HTTP request.  It is used for loading middleware
+functions at a particular path for all request methods.  
+
+Often it is useful group route handlers for a particular part of site together and access them using a common route-prefix. (e.g. a site with 
+a wiki page might have a route /wiki/ which holds all wiki routes) This can be acheived with the ```express.Router()``` object.  For example 
+with our wiki page:
+
+```javascript
+// wiki.js - wiki route module
+const   express = require('express'),
+        router = express.Router();
+        
+// Home page route
+router.get('/', (req, res) => {
+    res.send('Wiki homepage');
+});
+
+// About page route
+router.get('/about', (req, res) => {
+    res.send('About this wiki');
+});
+
+module.exports = router;
+```
+To use the router in our main js file (e.g. app.js, or server.js) we begin by importing the wiki routes module.  Then we use the 
+```app.use``` method to add the router to the middleware handling path. Two routes then become accessible ```/wiki/``` and ```/wiki/about```.
+
+```javascript
+
+const   wiki = require('./wiki.js');
+
+app.use('/wiki', wiki);
+```
+
+#### Using middleware
+
 
 
